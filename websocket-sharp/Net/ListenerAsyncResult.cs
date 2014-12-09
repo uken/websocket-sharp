@@ -133,7 +133,7 @@ namespace WebSocketSharp.Net
           _waitHandle.Set ();
 
         if (_callback != null)
-          ThreadPool.UnsafeQueueUserWorkItem (invokeCallback, this);
+          ThreadPool.QueueUserWorkItem (invokeCallback, this);
       }
     }
 
@@ -183,7 +183,7 @@ namespace WebSocketSharp.Net
           _waitHandle.Set ();
 
         if (_callback != null)
-          ThreadPool.UnsafeQueueUserWorkItem (invokeCallback, this);
+          ThreadPool.QueueUserWorkItem (invokeCallback, this);
       }
     }
 

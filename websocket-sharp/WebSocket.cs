@@ -1153,9 +1153,12 @@ namespace WebSocketSharp
       }
     }
 
+    //@Uken-RobM Added to avoid JIT from orignial delegate Func<>
+    internal delegate bool SendBytesFunc (Opcode opcode, byte [] data);
     private void sendAsync (Opcode opcode, byte [] data, Action<bool> completed)
     {
-      Func<Opcode, byte [], bool> sender = send;
+      //Func<Opcode, byte [], bool> sender = send;
+      SendBytesFunc sender = send;
       sender.BeginInvoke (
         opcode,
         data,
@@ -1173,9 +1176,12 @@ namespace WebSocketSharp
         null);
     }
 
+    //@Uken-RobM Added to avoid JIT from orignial delegate Func<>
+    internal delegate bool SendStreamFunc (Opcode opcode, Stream data);
     private void sendAsync (Opcode opcode, Stream stream, Action<bool> completed)
     {
-      Func<Opcode, Stream, bool> sender = send;
+      //Func<Opcode, Stream, bool> sender = send;
+      SendStreamFunc sender = send;
       sender.BeginInvoke (
         opcode,
         stream,
