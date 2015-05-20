@@ -48,6 +48,23 @@ using WebSocketSharp.Net.WebSockets;
 
 namespace WebSocketSharp
 {
+    public enum WsEventType {
+      OPEN,
+      MESSAGE,
+      CLOSE,
+      ERROR
+    }
+
+    public struct WsEvent {
+      public WsEventType type;
+      public EventArgs ev;
+
+      public WsEvent(WsEventType type, EventArgs ev) {
+        this.type = type;
+        this.ev = ev;
+      }
+    }
+
   /// <summary>
   /// Implements the WebSocket interface.
   /// </summary>
@@ -95,6 +112,7 @@ namespace WebSocketSharp
     private WsStream                _stream;
     private TcpClient               _tcpClient;
     private Uri                     _uri;
+    private Queue<WsEvent>          _eventQueue;
 
     #endregion
 
@@ -271,6 +289,12 @@ namespace WebSocketSharp
     public NetworkCredential Credentials {
       get {
         return _credentials;
+      }
+    }
+
+    public Queue<WsEvent> EventQueue {
+      get {
+        return _eventQueue;
       }
     }
 
@@ -467,30 +491,6 @@ namespace WebSocketSharp
 
     #endregion
 
-    #region Public Events
-
-    /// <summary>
-    /// Occurs when the WebSocket connection has been closed.
-    /// </summary>
-    public event EventHandler<CloseEventArgs> OnClose;
-
-    /// <summary>
-    /// Occurs when the <see cref="WebSocket"/> gets an error.
-    /// </summary>
-    public event EventHandler<ErrorEventArgs> OnError;
-
-    /// <summary>
-    /// Occurs when the <see cref="WebSocket"/> receives a data frame.
-    /// </summary>
-    public event EventHandler<MessageEventArgs> OnMessage;
-
-    /// <summary>
-    /// Occurs when the WebSocket connection has been established.
-    /// </summary>
-    public event EventHandler OnOpen;
-
-    #endregion
-
     #region Private Methods
 
     private bool acceptCloseFrame (WsFrame frame)
@@ -509,7 +509,7 @@ namespace WebSocketSharp
                    frame.PayloadData.ApplicationData.Decompress (_compression))
                : new MessageEventArgs (frame.Opcode, frame.PayloadData);
 
-      OnMessage.Emit (this, args);
+      _eventQueue.Enqueue(new WsEvent(WsEventType.MESSAGE, args));
       return true;
     }
 
@@ -563,7 +563,7 @@ namespace WebSocketSharp
           data = concatenated.ToArray ();
         }
 
-        OnMessage.Emit (this, new MessageEventArgs (first.Opcode, data));
+        _eventQueue.Enqueue(new WsEvent(WsEventType.MESSAGE, new MessageEventArgs (first.Opcode, data)));
         return true;
       }
     }
@@ -774,7 +774,7 @@ namespace WebSocketSharp
 
       _readyState = WebSocketState.CLOSED;
       try {
-        OnClose.Emit (this, args);
+        _eventQueue.Enqueue(new WsEvent(WsEventType.CLOSE, args));
       }
       catch (Exception ex) {
         _logger.Fatal (ex.ToString ());
@@ -782,9 +782,10 @@ namespace WebSocketSharp
       }
     }
 
+    internal delegate void CloseSocketFunc (PayloadData payload, bool send, bool wait);
     private void closeAsync (PayloadData payload, bool send, bool wait)
     {
-      Action<PayloadData, bool, bool> closer = close;
+      CloseSocketFunc closer = close;
       closer.BeginInvoke (
         payload, send, wait, ar => closer.EndInvoke (ar), null);
     }
@@ -1015,7 +1016,7 @@ namespace WebSocketSharp
 
     private void error (string message)
     {
-      OnError.Emit (this, new ErrorEventArgs (message));
+      _eventQueue.Enqueue(new WsEvent(WsEventType.ERROR, new ErrorEventArgs(message)));
     }
 
     private void init ()
@@ -1025,12 +1026,13 @@ namespace WebSocketSharp
       _forConn = new object ();
       _forSend = new object ();
       _readyState = WebSocketState.CONNECTING;
+      _eventQueue = new Queue<WsEvent>();
     }
 
     private void open ()
     {
       try {
-        OnOpen.Emit (this, EventArgs.Empty);
+        _eventQueue.Enqueue(new WsEvent(WsEventType.OPEN, EventArgs.Empty));
         if (_readyState == WebSocketState.OPEN)
           startReceiving ();
       }
@@ -1467,7 +1469,7 @@ namespace WebSocketSharp
 
       _readyState = WebSocketState.CLOSED;
       try {
-        OnClose.Emit (this, args);
+        _eventQueue.Enqueue(new WsEvent(WsEventType.CLOSE, args));
       }
       catch (Exception ex) {
         _logger.Fatal (ex.ToString ());
@@ -1848,6 +1850,7 @@ namespace WebSocketSharp
     /// <remarks>
     /// This method doesn't wait for the connect to be complete.
     /// </remarks>
+    internal delegate bool ConnectSocketFunc ();
     public void ConnectAsync ()
     {
       var msg = checkIfCanConnect ();
@@ -1858,7 +1861,7 @@ namespace WebSocketSharp
         return;
       }
 
-      Func<bool> connector = connect;
+      ConnectSocketFunc connector = connect;
       connector.BeginInvoke (
         ar => {
           if (connector.EndInvoke (ar))

@@ -242,11 +242,6 @@ namespace WebSocketSharp.Server
       _websocket.Protocol = _protocol;
       _websocket.CookiesValidation = ValidateCookies;
 
-      _websocket.OnOpen += onOpen;
-      _websocket.OnMessage += onMessage;
-      _websocket.OnError += onError;
-      _websocket.OnClose += onClose;
-
       _websocket.ConnectAsServer ();
     }
 
