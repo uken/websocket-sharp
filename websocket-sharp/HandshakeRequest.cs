@@ -28,7 +28,8 @@
 
 using System;
 using System.Collections.Specialized;
-using System.Linq;
+using System.Collections.Generic;
+
 using System.Text;
 using WebSocketSharp.Net;
 
@@ -178,9 +179,9 @@ namespace WebSocketSharp
       if (cookies == null || cookies.Count == 0)
         return;
 
-      var sorted = cookies.Sorted.ToArray ();
-      var header = new StringBuilder (sorted [0].ToString (), 64);
-      for (int i = 1; i < sorted.Length; i++)
+	  List<Cookie> sorted = (List<Cookie>)cookies.Sorted;
+      StringBuilder header = new StringBuilder (sorted [0].ToString (), 64);
+      for (int i = 1; i < sorted.Count; i++)
         if (!sorted [i].Expired)
           header.AppendFormat ("; {0}", sorted [i].ToString ());
 

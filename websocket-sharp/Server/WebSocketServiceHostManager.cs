@@ -29,7 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+
 using System.Text;
 using System.Threading;
 using WebSocketSharp.Net;
@@ -143,7 +143,7 @@ namespace WebSocketSharp.Server
     public IEnumerable<WebSocketServiceHost> ServiceHosts {
       get {
         lock (_sync) {
-          return _serviceHosts.Values.ToList ();
+          return (IEnumerable<WebSocketServiceHost>)_serviceHosts.Values;
         }
       }
     }
@@ -159,7 +159,7 @@ namespace WebSocketSharp.Server
     public IEnumerable<string> ServicePaths {
       get {
         lock (_sync) {
-          return _serviceHosts.Keys.ToList ();
+          return (IEnumerable<string>)_serviceHosts.Keys;
         }
       }
     }

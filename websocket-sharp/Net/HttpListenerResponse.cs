@@ -41,7 +41,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
+
 using System.Text;
 
 namespace WebSocketSharp.Net
@@ -498,8 +498,8 @@ namespace WebSocketSharp.Net
       if (Cookies.Count == 0)
         return true;
 
-      var found = findCookie (cookie);
-      if (found.Count () == 0)
+	  List<Cookie> found = findCookie (cookie);
+      if (found.Count == 0)
         return true;
 
       foreach (var c in found)
@@ -515,17 +515,18 @@ namespace WebSocketSharp.Net
       _context.Connection.Close (force);
     }
 
-    private IEnumerable<Cookie> findCookie (Cookie cookie)
+    private List<Cookie> findCookie (Cookie cookie)
     {
-      var name = cookie.Name;
-      var domain = cookie.Domain;
-      var path = cookie.Path;
-
-      return from Cookie c in Cookies
-             where c.Name.Equals (name, StringComparison.OrdinalIgnoreCase) &&
-                   c.Domain.Equals (domain, StringComparison.OrdinalIgnoreCase) &&
-                   c.Path.Equals (path, StringComparison.Ordinal)
-             select c;
+      List<Cookie> matches = new List<Cookie>();
+	  foreach(Cookie c in Cookies) {
+	  	if(c.Name.Equals(cookie.Name, StringComparison.OrdinalIgnoreCase) &&
+	  	c.Domain.Equals(cookie.Domain, StringComparison.OrdinalIgnoreCase) &&
+	  	c.Path.Equals(cookie.Path, StringComparison.Ordinal)) {
+	  		matches.Add(c);
+	  	}
+	  }
+	  
+      return matches;
     }
 
     #endregion

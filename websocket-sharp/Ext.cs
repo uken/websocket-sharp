@@ -42,7 +42,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
+
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -774,19 +774,21 @@ namespace WebSocketSharp
     internal static byte [] ToByteArrayInternally (
       this ushort value, ByteOrder order)
     {
-      var buffer = BitConverter.GetBytes (value);
-      return order.IsHostOrder ()
-             ? buffer
-             : buffer.Reverse ().ToArray ();
+      byte[] buffer = BitConverter.GetBytes (value);
+      if( !order.IsHostOrder () ) {
+      	Array.Reverse( buffer );
+      }
+      return buffer;
     }
 
     internal static byte [] ToByteArrayInternally (
       this ulong value, ByteOrder order)
     {
-      var buffer = BitConverter.GetBytes (value);
-      return order.IsHostOrder ()
-             ? buffer
-             : buffer.Reverse ().ToArray ();
+      byte[] buffer = BitConverter.GetBytes (value);
+      if( !order.IsHostOrder () ) {
+      	Array.Reverse( buffer );
+      }
+      return buffer;
     }
 
     internal static CompressionMethod ToCompressionMethod (this string value)
@@ -1739,9 +1741,10 @@ namespace WebSocketSharp
                                      ? BitConverter.GetBytes ((UInt64)(object) value)
                                      : new byte []{};
 
-      return buffer.Length <= 1 || order.IsHostOrder ()
-             ? buffer
-             : buffer.Reverse ().ToArray ();
+      if( buffer.Length > 0 && !order.IsHostOrder () ) {
+      	Array.Reverse( buffer );
+      }
+      return buffer;
     }
 
     /// <summary>
@@ -1766,9 +1769,10 @@ namespace WebSocketSharp
       if (src == null)
         throw new ArgumentNullException ("src");
 
-      return src.Length <= 1 || srcOrder.IsHostOrder ()
-             ? src
-             : src.Reverse ().ToArray ();
+      if( src.Length > 0 && !srcOrder.IsHostOrder () ) {
+      	Array.Reverse( src );
+      }
+      return src;
     }
 
     /// <summary>

@@ -35,7 +35,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
+
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -95,11 +95,20 @@ namespace WebSocketSharp.Net {
 
 		internal IEnumerable<Cookie> Sorted {
 			get {
-				return from cookie in list
-				       orderby cookie.Version,
-				               cookie.Name,
-				               cookie.Path.Length descending
-				       select cookie;
+				List<Cookie> sorted = list;
+				sorted.Sort(delegate(Cookie c1, Cookie c2) {
+					int retval = c1.Version.CompareTo(c2.Version);
+					if(retval != 0) {
+						return retval;
+					}
+					retval = c1.Name.CompareTo(c2.Name);
+					if(retval != 0) {
+						return retval;
+					} else {
+						return c1.Path.Length.CompareTo(c2.Path.Length);
+					}
+				});
+				return sorted;
 			}
 		}
 
@@ -216,7 +225,7 @@ namespace WebSocketSharp.Net {
 
 			Cookie cookie = null;
 			int version = 0;
-			string [] pairs = Split(value).ToArray();
+			string [] pairs = (string[])Split(value);
 			for (int i = 0; i < pairs.Length; i++) {
 				string pair = pairs [i].Trim ();
 				if (pair.Length == 0)
@@ -276,7 +285,7 @@ namespace WebSocketSharp.Net {
 			var cookies = new CookieCollection ();
 
 			Cookie cookie = null;
-			string [] pairs = Split(value).ToArray();
+			string [] pairs = (string[])Split(value);
 			for (int i = 0; i < pairs.Length; i++) {
 				string pair = pairs [i].Trim ();
 				if (pair.Length == 0)

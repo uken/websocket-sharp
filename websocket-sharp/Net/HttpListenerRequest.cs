@@ -41,7 +41,7 @@ using System;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
-using System.Linq;
+
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -530,7 +530,7 @@ namespace WebSocketSharp.Net
       _headers.SetInternal (name, val, false);
 
       if (lower == "accept") {
-        _acceptTypes = val.SplitHeaderValue (',').ToArray ();
+        _acceptTypes = (string[])val.SplitHeaderValue (',');
         return;
       }
 

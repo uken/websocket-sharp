@@ -29,7 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+
 using System.Text;
 using System.Threading;
 using System.Timers;
@@ -113,9 +113,13 @@ namespace WebSocketSharp.Server
     /// </value>
     public IEnumerable<string> ActiveIDs {
       get {
-        return from result in Broadping (WsFrame.EmptyUnmaskPingData, 1000)
-               where result.Value
-               select result.Key;
+      	List<string> active = new List<string>();
+      	foreach(KeyValuePair<string, bool> result in Broadping(WsFrame.EmptyUnmaskPingData, 1000)) {
+      		if(result.Value) {
+      			active.Add(result.Key);
+      		}
+      	}
+      	return active;
       }
     }
 
@@ -143,7 +147,7 @@ namespace WebSocketSharp.Server
     public IEnumerable<string> IDs {
       get {
         lock (_sync) {
-          return _sessions.Keys.ToList ();
+          return _sessions.Keys;
         }
       }
     }
@@ -158,9 +162,13 @@ namespace WebSocketSharp.Server
     /// </value>
     public IEnumerable<string> InactiveIDs {
       get {
-        return from result in Broadping (WsFrame.EmptyUnmaskPingData, 1000)
-               where !result.Value
-               select result.Key;
+      	List<string> active = new List<string>();
+      	foreach(KeyValuePair<string, bool> result in Broadping(WsFrame.EmptyUnmaskPingData, 1000)) {
+      		if(!result.Value) {
+      			active.Add(result.Key);
+      		}
+      	}
+      	return active;
       }
     }
 
@@ -220,7 +228,7 @@ namespace WebSocketSharp.Server
           return _emptySessions;
 
         lock (_sync) {
-          return _sessions.Values.ToList ();
+          return _sessions.Values;
         }
       }
     }
@@ -391,7 +399,7 @@ namespace WebSocketSharp.Server
         _state = ServerState.SHUTDOWN;
 
         _sweepTimer.Enabled = false;
-        foreach (var session in _sessions.Values.ToList ())
+        foreach (IWebSocketSession session in _sessions.Values)
           session.Context.WebSocket.Close (args, frameAsBytes, 1000);
 
         _state = ServerState.STOP;

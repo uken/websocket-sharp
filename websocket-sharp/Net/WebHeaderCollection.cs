@@ -36,7 +36,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
+
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -556,9 +556,12 @@ namespace WebSocketSharp.Net
 
 		static HttpHeaderInfo GetHeaderInfo (string name)
 		{
-			return (from HttpHeaderInfo info in headers.Values
-			        where info.Name.Equals (name, StringComparison.InvariantCultureIgnoreCase)
-			        select info).FirstOrDefault ();
+			foreach( HttpHeaderInfo headerInfo in headers.Values ) {
+				if( headerInfo.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase) ) {
+					return headerInfo;
+				}
+			}
+			return default(HttpHeaderInfo);
 		}
 
 		void RemoveWithoutCheckingName (string name, string unuse)
