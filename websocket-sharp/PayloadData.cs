@@ -30,7 +30,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace WebSocketSharp
@@ -155,9 +154,15 @@ namespace WebSocketSharp
 
     public byte [] ToByteArray ()
     {
-      return ExtensionData.LongLength > 0
-             ? this.ToArray ()
-             : ApplicationData;
+      if( ExtensionData.Length > 0 ) {
+      	List<byte> bytes = new List<byte>();
+      	foreach( byte b in this ) {
+      	  bytes.Add( b );
+      	}
+      	return bytes.ToArray();
+      } else {
+      	return ApplicationData;
+      }
     }
 
     public override string ToString ()
